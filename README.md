@@ -103,3 +103,7 @@ TODO: Investigate using some of the options from [https://nmap.org/book/man-bypa
 ### Other Links
 - [python argparse](https://docs.python.org/3.8/library/argparse.html)
 - [python ipaddress](https://docs.python.org/3/library/ipaddress.html#ipaddress.IPv4Network)
+
+## Helpful Tools
+- [Nmap](https://github.com/nmap/nmap) is the de facto tool for network scanning, we can benchmark our success based on them.
+- [Wireshark](https://www.wireshark.org/index.html#aboutWS) allows you to see the actual packets Nmap is sending for a scan and is oftentimes even easier to use than reading source code to figure out Nmap's strategy.
