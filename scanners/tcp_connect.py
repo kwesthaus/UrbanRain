@@ -1,4 +1,5 @@
 import socket
+from enum import Enum
 
 def run(targets, port_range):
     # Map targets to port lists
@@ -14,34 +15,16 @@ def run(targets, port_range):
 
         for port in port_range:
             # Create a connection which will automatically be closed
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # Shorten to reduce wasted time
-                sock.settimeout(2)
-
-                #TODO: just make this a loop so it's less ugly
-                try:
-                    sock.connect((str(target),port))
-                except socket.error as e:
-                    if e.__class__ == ConnectionRefusedError:
-                        # Closed first time
-                        closed_ports.append(port)
-                    elif e.__class__ == socket.timeout:
-                        # No response first time, try again to double check
-                        try:
-                            sock.connect((str(target),port))
-                        except socket.error:
-                            if e.__class__ == ConnectionRefusedError:
-                                # Closed second time
-                                closed_ports.append(port)
-                            elif e.__class__ == socket.timeout:
-                                # No response second time, record and move on
-                                filtered_ports.append(port)
-                        else:
-                            # Connection went through second time
-                            open_ports.append(port)
-                else:
-                    # Connection went through first time
+                s.settimeout(2)
+                port_status = get_port_status(s, target, port)
+                if port_status == PortStates.OPEN:
                     open_ports.append(port)
+                elif port_status == PortStates.CLOSED:
+                    closed_ports.append(port)
+                elif port_status == PortStates.FILTERED:
+                    filtered_ports.append(port)
         
         # Save port lists for this target in the overall map
         if open_ports:
@@ -51,9 +34,38 @@ def run(targets, port_range):
         if filtered_ports:
             filtered_targets[target] = filtered_ports
 
-    # Print results
-    print('Done scanning.')
+    output_ports(open_targets, closed_targets, filtered_targets)
+
+
+def get_port_status(s, host, port):
+    for i in range(0, 3):
+        try:
+            s.connect((str(host), port))
+            return PortStates.OPEN
+        except ConnectionRefusedError:
+            return PortStates.CLOSED
+        except socket.timeout:
+            # Reinit socket and keep looping
+            s.close()
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(2)
+            pass
+        except socket.error as e:
+            print(f'Unspecified socket error: {e}')
+    # We got through three times without hitting any of the other returns,
+    # so assume we aren't getting responses because it's filtered
+    return PortStates.FILTERED
+
+def output_ports(open_targets, closed_targets, filtered_targets):
+    print('TCP port scan complete.')
     print(f'Open ports by target: {open_targets}')
     print(f'Closed ports by target: {closed_targets}')
     print(f'Filtered ports by target: {filtered_targets}')
 
+class PortStates(Enum):
+    OPEN = 1
+    CLOSED = 2
+    FILTERED = 3
+    UNFILTERED = 4
+    OPEN_FILTERED = 5
+    CLOSED_FILTERED = 6
