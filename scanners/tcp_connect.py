@@ -1,11 +1,16 @@
 import socket
 from enum import Enum
+from scanners.util.defaults import tcp_ports
 
-def run(targets, port_range):
+def run(targets, port_range, print_results=True):
+    if port_range is None:
+        port_range = tcp_ports
+    
     # Map targets to port lists
     open_targets = {}
     closed_targets = {}
     filtered_targets = {}
+    up_hosts= []
 
     for target in targets:
         # New list for every target
@@ -27,14 +32,17 @@ def run(targets, port_range):
                     filtered_ports.append(port)
         
         # Save port lists for this target in the overall map
+        if open_ports or closed_ports:
+            up_hosts.append(target)
         if open_ports:
             open_targets[target] = open_ports
         if closed_ports:
             closed_targets[target] = closed_ports
         if filtered_ports:
             filtered_targets[target] = filtered_ports
-
-    output_ports(open_targets, closed_targets, filtered_targets)
+    if print_results:
+        output_ports(open_targets, closed_targets, filtered_targets)
+    return up_hosts
 
 
 def get_port_status(s, host, port):
@@ -50,6 +58,13 @@ def get_port_status(s, host, port):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             pass
+        except OSError as e:
+            if e.errno == 113:
+                # Scan ran on local network so OS ran ARP under the hood
+                # and nothing spoke up
+                return PortStates.FILTERED
+            else:
+                print(f'Unspecified OSError: {e}')
         except socket.error as e:
             print(f'Unspecified socket error: {e}')
     # We got through three times without hitting any of the other returns,
@@ -57,7 +72,7 @@ def get_port_status(s, host, port):
     return PortStates.FILTERED
 
 def output_ports(open_targets, closed_targets, filtered_targets):
-    print('TCP port scan complete.')
+    print('TCP connect() port scan complete.')
     print(f'Open ports by target: {open_targets}')
     print(f'Closed ports by target: {closed_targets}')
     print(f'Filtered ports by target: {filtered_targets}')

@@ -1,8 +1,12 @@
 import socket
 import errno
 from enum import Enum
+from scanners.util.defaults import udp_ports
 
 def run(targets, port_range):
+    if port_range is None:
+        port_range = udp_ports
+
     # Map targets to port lists
     open_filtered_targets = {}
     closed_targets = {}
