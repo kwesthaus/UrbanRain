@@ -4,6 +4,7 @@ from scanners import host_up, tcp_connect, udp_connect, ping_os
 from scanners.util.host_parser import parse_hosts
 import socket
 import re
+import textwrap
 
 # Parser for port ranges
 def parseNumRange(string):
@@ -17,10 +18,37 @@ def parseNumRange(string):
 def main():
 
     # Parse args
-    parser = argparse.ArgumentParser(description='A simple python network scanner.')
+    parser = argparse.ArgumentParser(description='A simple python network scanner.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent('''\
+            Examples:
+            ---------------------------------------------------------
+                python3 urban_rain.py host 192.168.1.0-192.168.1.255
+                    Just host detection (without a port scan) on a dashed range of ip addresses.
+            
+                python3 urban_rain.py -p 443 both -sT 192.168.1.64/24
+                    Host detection then an unprivileged TCP connect scan for port 443 on a CIDR notation range of ip addresses.
+                
+                python3 urban_rain.py -p 80-81 port -sU 192.168.1.1
+                    Unprivileged UDP connect scan (without host detection) on ports 80 and 81 of a single ip address.
+                
+                python3 urban_rain.py both -sP 192.168.1.32
+                    Host detection then an unprivileged PING scan on a single ip address.
+                
+                python3 urban_rain.py port -sU 192.168.1.100-192.168.1.110
+                    Port scan on the default set of ports of a dashed range of ip addresses.
+
+                python3 urban_rain.py -p 1-1023 both -sT 192.168.1.32/30 192.168.1.64-192.168.1.95 192.168.1.128
+                    Unprivileged TCP scan against ports 1-1023 on multiple targets of various notations.
+                
+                python3 urban_rain.py -h
+                    or
+                python3 urban_rain.py --help
+                    For more help.
+            '''))
     parser.add_argument('discovery', choices=['host', 'port', 'both'], help='which type of discovery should occur')
-    parser.add_argument('targets',  nargs='+', help='CIDR range of targets to scan')
-    parser.add_argument('-p', '--port-range', type=parseNumRange, help='range of ports to scan')
+    parser.add_argument('targets',  nargs='+', help='list of target ranges to scan')
+    parser.add_argument('-p', '--port-range', type=parseNumRange, help='dashed range of ports to scan')
     parser.add_argument('-sT', action='store_true', help='run an unprivileged TCP Connect scan')
     parser.add_argument('-sU', action='store_true', help='run an unprivileged UDP Connect scan')
     parser.add_argument('-sP', action='store_true', help='run an unprivileged PING scan')
