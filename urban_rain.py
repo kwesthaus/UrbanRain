@@ -32,9 +32,6 @@ def main():
                 python3 urban_rain.py -p 80-81 port -sU 192.168.1.1
                     Unprivileged UDP connect scan (without host detection) on ports 80 and 81 of a single ip address.
                 
-                python3 urban_rain.py both -sP 192.168.1.32
-                    Host detection then an unprivileged PING scan on a single ip address.
-                
                 python3 urban_rain.py port -sU 192.168.1.100-192.168.1.110
                     Port scan on the default set of ports of a dashed range of ip addresses.
 
@@ -51,7 +48,6 @@ def main():
     parser.add_argument('-p', '--port-range', type=parseNumRange, help='dashed range of ports to scan')
     parser.add_argument('-sT', action='store_true', help='run an unprivileged TCP Connect scan')
     parser.add_argument('-sU', action='store_true', help='run an unprivileged UDP Connect scan')
-    parser.add_argument('-sP', action='store_true', help='run an unprivileged PING scan')
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
 
@@ -65,13 +61,12 @@ def main():
         else:
             unpacked_targets.add(target)
 
-    if args.port_range is None:
-        print('No port range specified, using defaults.')
-
     # Run selected scan types (can be multiple)
     if args.discovery == 'host' or args.discovery == 'both':
         unpacked_targets = host_up.run(unpacked_targets)
     if args.discovery == 'port' or args.discovery == 'both':
+        if args.port_range is None:
+            print('No port range specified, using defaults.')
         scantype_provided = 0
         if args.sT:
             scantype_provided = 1
@@ -79,9 +74,6 @@ def main():
         if args.sU:
             scantype_provided = 1
             udp_connect.run(unpacked_targets, args.port_range)
-        if args.sP:
-            scantype_provided = 1
-            ping_os.run(unpacked_targets, args.verbose)
         if scantype_provided == 0:
             print('Port scan requested but no scan type provided, skipping')
 

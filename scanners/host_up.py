@@ -1,7 +1,7 @@
 import socket
 import os
 import ctypes
-from scanners import tcp_connect, udp_connect
+from scanners import tcp_connect, udp_connect, ping_os, icmp_echo, icmp_timestamp
 
 def run(targets):
     # Found online
@@ -13,25 +13,26 @@ def run(targets):
         #If not Linux, check Windows
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
 
+    targets_up = set()
     if is_admin:
         # Try an ICMP echo request (PING), TCP SYN to port 443, 
         # TCP ACK to port 80, and an ICMP timestamp request
-        ICMP_HEADER = b'x08\x00\xF7x00\x00\x00\x00'
-        for target in targets:
-            with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
-                sock.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
-                sock.sendto(ICMP_HEADER, (str(target), 1))
-                while True:
-                    try:
-                        packet, address = sock.recvfrom(2048)
-                        print(address)
-                    except socket.error as e:
-                        print(e)
+        icmp_echo_targets_up = icmp_echo.run(targets, print_results=False)
+        targets_up.update(icmp_echo_targets_up)
+        #tcp_syn_targets_up = tcp_syn.run(targets, 443, print_results=False)
+        #targets_up.update(tcp_syn_targets_up)
+        #tcp_ack_targets_up = tcp_ack.run(targets, 80, print_results=False)
+        #targets_up.update(tcp_ack_targets_up)
+        icmp_timestamp_targets_up = icmp_timestamp.run(targets, print_results=False)
+        targets_up.update(icmp_timestamp_targets_up)
     else:
         # Unprivileged
         # Use TCP connect() scan on two common ports so as to not look suspicious
-        check_host_up_ports = [80, 443]
-        targets_up = tcp_connect.run(targets, check_host_up_ports, print_results=False)
+        check_tcp_ports = [80, 443]
+        tcp_connect_targets_up = tcp_connect.run(targets, check_tcp_ports, print_results=False)
+        targets_up.update(tcp_connect_targets_up)
+        ping_os_targets_up = ping_os.run(targets, print_results=False, verbose=False)
+        targets_up.update(ping_os_targets_up)
 
     print_results(targets_up)
     return targets_up

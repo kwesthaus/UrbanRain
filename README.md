@@ -7,7 +7,7 @@ Network scanner originally implemented as part of CSE 4471 at The Ohio State Uni
 
 # Usage instructions
 ```
-usage: urban_rain.py [-h] [-p PORT_RANGE] [-sT] [-sU] [-sP] [-v] {host,port,both} targets [targets ...]
+usage: urban_rain.py [-h] [-p PORT_RANGE] [-sT] [-sU] [-v] {host,port,both} targets [targets ...]
 
 A simple python network scanner.
 
@@ -21,7 +21,6 @@ optional arguments:
                             dashed range of ports to scan
     -sT                   run an unprivileged TCP Connect scan
     -sU                   run an unprivileged UDP Connect scan
-    -sP                   run an unprivileged PING scan
     -v, --verbose         verbose logging
 
 Examples:
@@ -34,9 +33,6 @@ Examples:
 
     python3 urban_rain.py -p 80-81 port -sU 192.168.1.1
         Unprivileged UDP connect scan (without host detection) on ports 80 and 81 of a single ip address.
-
-    python3 urban_rain.py both -sP 192.168.1.32
-        Host detection then an unprivileged PING scan on a single ip address.
 
     python3 urban_rain.py port -sU 192.168.1.100-192.168.1.110
         Port scan on the default set of ports of a dashed range of ip addresses.
