@@ -6,7 +6,7 @@ import ipaddress
 # <start_host_ip>-<end_host_ip> for a range a hosts
 # returns a list of all host IPs to scan
 def parse_hosts(targets):
-    # subnet = re.compile(r"(?:\d{1,3}\.|\*\.){3}(?:\d{1,3}|\*)\\\d")
+
     list_of_hosts = []
     for target in targets:
         if '-' in target:  # then we have a dash range of hosts being requested

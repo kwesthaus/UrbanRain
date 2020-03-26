@@ -1,7 +1,9 @@
 import argparse
 import ipaddress
-from scanners import host_up, tcp_connect, udp_connect, ping_os
+from scanners import host_up, tcp_connect, udp_connect
+from scanners.tcp_privileged import syn, ack, null, xmas
 from scanners.util.host_parser import parse_hosts
+import subprocess
 import socket
 import re
 import textwrap
@@ -48,18 +50,24 @@ def main():
     parser.add_argument('-p', '--port-range', type=parseNumRange, help='dashed range of ports to scan')
     parser.add_argument('-sT', action='store_true', help='run an unprivileged TCP Connect scan')
     parser.add_argument('-sU', action='store_true', help='run an unprivileged UDP Connect scan')
+    parser.add_argument('-sS', action='store_true', help='run a privileged TCP SYN scan')
+    parser.add_argument('-sA', action='store_true', help='run a privileged TCP ACK scan')
+    parser.add_argument('-sN', action='store_true', help='run a privileged TCP NULL scan')
+    parser.add_argument('-sX', action='store_true', help='run a privileged TCP Xmas scan')
+
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
 
-    # get list of hosts and host ranges from provided range of IPs --> not sure if everyone needs this functionality. If not I'll move it to the ping module
+    # get list of hosts and host ranges from provided range of IPs
     targets = parse_hosts(args.targets)
     unpacked_targets = set()
+    # Ensure that all targets are IPv4 strings
     for target in targets:
         if isinstance(target, ipaddress.IPv4Network):
             for member in target:
-                unpacked_targets.add(member)
+                unpacked_targets.add(str(member))
         else:
-            unpacked_targets.add(target)
+            unpacked_targets.add(str(target))
 
     # Run selected scan types (can be multiple)
     if args.discovery == 'host' or args.discovery == 'both':
@@ -74,9 +82,20 @@ def main():
         if args.sU:
             scantype_provided = 1
             udp_connect.run(unpacked_targets, args.port_range)
+        if args.sS:
+            scantype_provided = 1
+            syn.run(unpacked_targets, args.port_range)
+        if args.sA:
+            scantype_provided = 1
+            ack.run(unpacked_targets, args.port_range)
+        if args.sN:
+            scantype_provided = 1
+            null.run(unpacked_targets, args.port_range)
+        if args.sX:
+            scantype_provided = 1
+            xmas.run(unpacked_targets, args.port_range)
         if scantype_provided == 0:
             print('Port scan requested but no scan type provided, skipping')
-
 
 # Only run when called (not imported)
 if __name__ == "__main__":

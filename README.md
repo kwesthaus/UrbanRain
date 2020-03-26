@@ -4,6 +4,8 @@ Network scanner originally implemented as part of CSE 4471 at The Ohio State Uni
 # Installation instructions:
 - Install Python (3.7 is recommended)
 - Clone this repo
+- `pip install ipaddress`
+- `pip install netifaces`
 
 # Usage instructions
 ```

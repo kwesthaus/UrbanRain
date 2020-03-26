@@ -1,10 +1,9 @@
 import socket
 import os
 import ctypes
-from scanners import tcp_connect, udp_connect, ping_os, icmp_echo, icmp_timestamp
+from scanners import tcp_connect, udp_connect, ping_os, icmp_echo, icmp_timestamp, tcp_privileged
 
 def run(targets):
-    # Found online
     # Check admin rights
     try:
         # Linux check
@@ -19,9 +18,9 @@ def run(targets):
         # TCP ACK to port 80, and an ICMP timestamp request
         icmp_echo_targets_up = icmp_echo.run(targets, print_results=False)
         targets_up.update(icmp_echo_targets_up)
-        #tcp_syn_targets_up = tcp_syn.run(targets, 443, print_results=False)
-        #targets_up.update(tcp_syn_targets_up)
-        #tcp_ack_targets_up = tcp_ack.run(targets, 80, print_results=False)
+        tcp_syn_targets_up = tcp_privileged.syn.run(targets, [443], print_results=False)
+        targets_up.update(tcp_syn_targets_up)
+        #tcp_ack_targets_up = tcp_privileged.ack.run(targets, [80], print_results=False)
         #targets_up.update(tcp_ack_targets_up)
         icmp_timestamp_targets_up = icmp_timestamp.run(targets, print_results=False)
         targets_up.update(icmp_timestamp_targets_up)

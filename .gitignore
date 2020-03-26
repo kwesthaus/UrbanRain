@@ -109,4 +109,11 @@ dmypy.json
 
 .idea/
 
+venv/
+
+build/
+
+scapy.egg-info/
+
+
 # End of https://www.gitignore.io/api/python
