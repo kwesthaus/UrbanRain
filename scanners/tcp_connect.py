@@ -63,6 +63,13 @@ def get_port_status(s, host, port):
                 # Scan ran on local network so OS ran ARP under the hood
                 # and nothing spoke up
                 return PortStates.FILTERED
+            elif e.errno == 101:
+                # IP is either the first or last IP of a subnet and therefore
+                # is either the network identifier or broadcast address,
+                # respectively.
+                # These are not valid IP addresses for single hosts and cannot
+                # be scanned, so skip this port.
+                return PortStates.FILTERED
             else:
                 print(f'Unspecified OSError: {e}')
         except socket.error as e:

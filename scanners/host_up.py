@@ -1,17 +1,7 @@
 import socket
-import os
-import ctypes
 from scanners import tcp_connect, udp_connect, ping_os, icmp_echo, icmp_timestamp, tcp_privileged
 
-def run(targets):
-    # Check admin rights
-    try:
-        # Linux check
-        is_admin = os.getuid() == 0
-    except AttributeError:
-        #If not Linux, check Windows
-        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-
+def run(targets, is_admin):
     targets_up = set()
     if is_admin:
         # Try an ICMP echo request (PING), TCP SYN to port 443, 

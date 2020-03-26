@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+
 import argparse
 import ipaddress
+import os
+import ctypes
 from scanners import host_up, tcp_connect, udp_connect
 from scanners.tcp_privileged import syn, ack, null, xmas
 from scanners.util.host_parser import parse_hosts
@@ -17,7 +21,23 @@ def parseNumRange(string):
     end = m.group(2) or start
     return list(range(int(start,10), int(end,10)+1))
 
+def check_admin():
+    # Check admin rights
+    try:
+        # Linux check
+        is_admin = os.getuid() == 0
+    except AttributeError:
+        # If not Linux, check Windows
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except:
+        # Unknown OS, cannot determine privileged status
+        print('Cannot determine privileged status, assuming unprivileged')
+        is_admin = False
+    return is_admin
+
 def main():
+
+    is_admin = check_admin()
 
     # Parse args
     parser = argparse.ArgumentParser(description='A simple python network scanner.',
@@ -34,8 +54,8 @@ def main():
                 python3 urban_rain.py -p 80-81 port -sU 192.168.1.1
                     Unprivileged UDP connect scan (without host detection) on ports 80 and 81 of a single ip address.
                 
-                python3 urban_rain.py port -sU 192.168.1.100-192.168.1.110
-                    Port scan on the default set of ports of a dashed range of ip addresses.
+                sudo python3 urban_rain.py port -sS 192.168.1.100-192.168.1.110
+                    Privileged TCP SYN port scan on the default set of ports of a dashed range of ip addresses.
 
                 python3 urban_rain.py -p 1-1023 both -sT 192.168.1.32/30 192.168.1.64-192.168.1.95 192.168.1.128
                     Unprivileged TCP scan against ports 1-1023 on multiple targets of various notations.
@@ -71,7 +91,7 @@ def main():
 
     # Run selected scan types (can be multiple)
     if args.discovery == 'host' or args.discovery == 'both':
-        unpacked_targets = host_up.run(unpacked_targets)
+        unpacked_targets = host_up.run(unpacked_targets, is_admin)
     if args.discovery == 'port' or args.discovery == 'both':
         if args.port_range is None:
             print('No port range specified, using defaults.')
@@ -84,16 +104,28 @@ def main():
             udp_connect.run(unpacked_targets, args.port_range)
         if args.sS:
             scantype_provided = 1
-            syn.run(unpacked_targets, args.port_range)
+            if is_admin:
+                syn.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP SYN scan requires privileges, skipping')
         if args.sA:
             scantype_provided = 1
-            ack.run(unpacked_targets, args.port_range)
+            if is_admin:
+                ack.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP ACK scan requires privileges, skipping')
         if args.sN:
             scantype_provided = 1
-            null.run(unpacked_targets, args.port_range)
+            if is_admin:
+                null.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP NULL scan requires privileges, skipping')
         if args.sX:
             scantype_provided = 1
-            xmas.run(unpacked_targets, args.port_range)
+            if is_admin:
+                xmas.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP XMAS scan requires privileges, skipping')
         if scantype_provided == 0:
             print('Port scan requested but no scan type provided, skipping')
 
