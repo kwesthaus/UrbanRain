@@ -5,7 +5,7 @@ import ipaddress
 import os
 import ctypes
 from scanners import host_up, tcp_connect, udp_connect
-from scanners.tcp_privileged import syn, ack, null, xmas
+from scanners.tcp_privileged import syn, ack, null, xmas, fin, maimon, window
 from scanners.util.host_parser import parse_hosts
 import subprocess
 import socket
@@ -72,8 +72,11 @@ def main():
     parser.add_argument('-sU', action='store_true', help='run an unprivileged UDP Connect scan')
     parser.add_argument('-sS', action='store_true', help='run a privileged TCP SYN scan')
     parser.add_argument('-sA', action='store_true', help='run a privileged TCP ACK scan')
-    parser.add_argument('-sN', action='store_true', help='run a privileged TCP NULL scan')
+    parser.add_argument('-sN', action='store_true', help='run a privileged TCP Null scan')
     parser.add_argument('-sX', action='store_true', help='run a privileged TCP Xmas scan')
+    parser.add_argument('-sF', action='store_true', help='run a privileged TCP FIN scan')
+    parser.add_argument('-sM', action='store_true', help='run a privileged TCP Maimon scan')
+    parser.add_argument('-sW', action='store_true', help='run a privileged TCP Window scan')
 
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
@@ -126,6 +129,24 @@ def main():
                 xmas.run(unpacked_targets, args.port_range)
             else:
                 print('TCP XMAS scan requires privileges, skipping')
+        if args.sF:
+            scantype_provided = 1
+            if is_admin:
+                fin.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP FIN scan requires privileges, skipping')
+        if args.sM:
+            scantype_provided = 1
+            if is_admin:
+                maimon.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP Maimon Scan requires privileges, skipping')
+        if args.sW:
+            scantype_provided = 1
+            if is_admin:
+                window.run(unpacked_targets, args.port_range)
+            else:
+                print('TCP Window Scan requires privileges, skipping')
         if scantype_provided == 0:
             print('Port scan requested but no scan type provided, skipping')
 

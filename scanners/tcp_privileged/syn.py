@@ -1,10 +1,10 @@
 from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
-import binascii
 
 def run(targets, port_range, print_results=True):
 
+    # if no ports were specified, scan default TCP ports
     if port_range is None:
         port_range = tcp_ports
 
@@ -36,14 +36,27 @@ def run(targets, port_range, print_results=True):
             # open.
 
             if packet is not None:
-                flags = util.parse_packet(packet)
-                if flags[Flags.SYN] and flags[Flags.ACK]:
-                    open_ports.append(port)
-                elif flags[Flags.RST] and flags[Flags.ACK]:
-                    closed_ports.append(port)
-                else:  # not sure what would have happened, but something weird
+                protocol_number, data = util.parse_packet(packet)
+                if protocol_number == 6: # then we have TCP response
+                    # data = flags of TCP packet if TCP response
+                    flags = data
+                    if flags[Flags.SYN] and flags[Flags.ACK]:
+                        open_ports.append(port)
+                    elif flags[Flags.RST] and flags[Flags.ACK]:
+                        closed_ports.append(port)
+                    else:  # not sure what would have happened, but something weird
+                        unexpected_ports.append(port)
+                elif protocol_number == 1: # then we have ICMP response
+                    # data = (icmp type, icmp code) if ICMP response
+                    type = data[0]
+                    code = data[1]
+                    if (type == 3) and (code in [1, 2, 3, 9, 10, 13]):
+                        filtered_ports.append(port)
+                    else:  # also not sure what would have happened, but something weird
+                        unexpected_ports.append(port)
+                else: # unexpected protocol
                     unexpected_ports.append(port)
-            else:
+            else:  # no response received
                 filtered_ports.append(port)
 
         # map target to each port and the port's status
