@@ -43,7 +43,25 @@ def run(targets, ports, print_results=True):
                     # data = (type, code) if ICMP response
                     type = data[0]
                     code = data[1]
-                    if (type == 3) and (code in [1, 2, 3, 9, 10, 13]):
+                    icmp_error_type = 3
+
+                    destination_network_unreachable_code = 0
+                    destination_host_unreachable_code = 1
+                    destination_protocol_unreachable_code = 2
+                    destination_port_unreachable_code = 3
+                    network_adminstratively_prohibited_code = 9
+                    host_administratively_prohibited_code = 10
+                    communication_administratively_prohibited_code = 13
+
+                    if (packet_type == icmp_error_type) and (
+                        code == destination_network_unreachable_code
+                        or code == destination_host_unreachable_code
+                        or code == destination_protocol_unreachable_code
+                        or code == destination_port_unreachable_code
+                        or code == network_adminstratively_prohibited_code
+                        or code == host_administratively_prohibited_code
+                        or code == communication_administratively_prohibited_code
+                    ):
                         filtered_ports.append(port)
                     else:  # also not sure what would have happened, but something weird
                         unexpected_ports.append(port)

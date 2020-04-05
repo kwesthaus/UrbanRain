@@ -10,8 +10,8 @@ def run(targets, is_admin):
         targets_up.update(icmp_echo_targets_up)
         tcp_syn_targets_up = tcp_privileged.syn.run(targets, [443], print_results=False)
         targets_up.update(tcp_syn_targets_up)
-        #tcp_ack_targets_up = tcp_privileged.ack.run(targets, [80], print_results=False)
-        #targets_up.update(tcp_ack_targets_up)
+        tcp_ack_targets_up = tcp_privileged.ack.run(targets, [80], print_results=False)
+        targets_up.update(tcp_ack_targets_up)
         icmp_timestamp_targets_up = icmp_timestamp.run(targets, print_results=False)
         targets_up.update(icmp_timestamp_targets_up)
     else:

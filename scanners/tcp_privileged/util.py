@@ -1,7 +1,6 @@
 import binascii
 from enum import Enum
 
-
 def parse_packet(packet):
     response_bytes = binascii.hexlify(packet)
     protocol = response_bytes[18:20]  # based on format of IPv4 packet, parse protocol number for upper-layer protocol
@@ -38,7 +37,7 @@ def parse_tcp(response_bytes, tcp_segment_start):
 
     flags_and_reserved_fields_hex_digits = response_bytes[first_flag_offset: first_flag_offset + 3]
     flags_and_reserved_fields_int = int(flags_and_reserved_fields_hex_digits, 16)  # convert to int
-    flags_and_reserved_fields_list = [int(x) for x in f'{flags_and_reserved_fields_int:012b}']  # convert to binary list
+    flags_and_reserved_fields_list = [int(x) for x in f'{flags_and_reserved_fields_int:012b}'] # convert to binary list
     # isolate flags
     flags = {}
     flags[Flags.NS] = flags_and_reserved_fields_list[3]
@@ -71,7 +70,6 @@ def parse_window(packet):
     hex_window_field = response_bytes[window_field_offset: window_field_offset + window_field_size]
 
     return int(hex_window_field, 16) # convert hexadecimal string to integer
-
 
 class Flags(Enum):
     NS = 0

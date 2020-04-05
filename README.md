@@ -9,7 +9,7 @@ Network scanner originally implemented as part of CSE 4471 at The Ohio State Uni
 
 # Usage instructions
 ```
-usage: urban_rain.py [-h] [-p PORT_RANGE] [-sT] [-sU] [-v] {host,port,both} targets [targets ...]
+usage: urban_rain.py [-h] [-p PORT_RANGE] [-sT] [-sU] [-sA] [-v] {host,port,both} targets [targets ...]
 
 A simple python network scanner.
 
@@ -23,6 +23,7 @@ optional arguments:
                             dashed range of ports to scan
     -sT                   run an unprivileged TCP Connect scan
     -sU                   run an unprivileged UDP Connect scan
+    -sA                   run a TCP Ack Scan
     -v, --verbose         verbose logging
 
 Examples:
