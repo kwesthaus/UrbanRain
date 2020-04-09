@@ -9,7 +9,7 @@ from scanners.util.defaults import tcp_ports
 import scapy.all
 from scapy.all import *
 
-def scan(target, port, flags):
+def scan(target, port, flags, options):
     random.seed()
 
     # Uses the common Berkeley sockets API
@@ -33,8 +33,8 @@ def scan(target, port, flags):
         # We don't necessarily have to do this, but it helps the packet look
         # more legitimate so it is harder to block our scans.
         src_port = random.randint(49152, 65536)
-        # create tcp_segment with source=router, dest=target, src_port=src_port, dst_port=port, and flags=flags
-        tcp_segment = tp.create(src_ip, target, src_port, port, flags)
+        # create tcp_segment with source=router, dest=target, src_port=src_port, dst_port=port, flags=flags, and options=options
+        tcp_segment = tp.create(src_ip, target, src_port, port, flags, options)
         # wrap tcp_segment in ip_network_packet
         ip_network_packet = ip_packet.create(tcp_segment, src_ip, target)
         # perform scan

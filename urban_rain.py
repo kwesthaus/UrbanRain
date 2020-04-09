@@ -88,9 +88,27 @@ def main():
     parser.add_argument('-sM', action='store_true', help='run a privileged TCP Maimon scan')
     parser.add_argument('-sW', action='store_true', help='run a privileged TCP Window scan')
 
+    parser.add_argument('-mss', action='store_true', help='add maximum segment size TCP option')
+    parser.add_argument('-sack', action='store_true', help='add SACK permitted TCP option')
+    parser.add_argument('-timestamp', action='store_true', help='add timestamp TCP option')
+    parser.add_argument('-no-operation', action='store_true', help='add no operation TCP option')
+    parser.add_argument('-window-scale', action='store_true', help='add window scale TCP option')
 
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
+
+    # construct option list
+    optionList = []
+    if args.mss:
+        optionList.append(1)
+    if args.sack:
+        optionList.append(2)
+    if args.timestamp:
+        optionList.append(3)
+    if args.no_operation:
+        optionList.append(4)
+    if args.window_scale:
+        optionList.append(5)
 
     # get list of hosts and host ranges from provided range of IPs
     targets = parse_hosts(args.targets)
@@ -119,25 +137,25 @@ def main():
         if args.sS:
             scantype_provided = 1
             if is_admin:
-                syn.run(unpacked_targets, args.port_range)
+                syn.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP SYN scan requires privileges, skipping')
         if args.sA:
             scantype_provided = 1
             if is_admin:
-                ack.run(unpacked_targets, args.port_range)
+                ack.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP ACK scan requires privileges, skipping')
         if args.sN:
             scantype_provided = 1
             if is_admin:
-                null.run(unpacked_targets, args.port_range)
+                null.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP NULL scan requires privileges, skipping')
         if args.sX:
             scantype_provided = 1
             if is_admin:
-                xmas.run(unpacked_targets, args.port_range)
+                xmas.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP XMAS scan requires privileges, skipping')
         if args.sO:
@@ -155,19 +173,19 @@ def main():
         if args.sF:
             scantype_provided = 1
             if is_admin:
-                fin.run(unpacked_targets, args.port_range)
+                fin.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP FIN scan requires privileges, skipping')
         if args.sM:
             scantype_provided = 1
             if is_admin:
-                maimon.run(unpacked_targets, args.port_range)
+                maimon.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP Maimon Scan requires privileges, skipping')
         if args.sW:
             scantype_provided = 1
             if is_admin:
-                window.run(unpacked_targets, args.port_range)
+                window.run(unpacked_targets, args.port_range, optionList)
             else:
                 print('TCP Window Scan requires privileges, skipping')
 
@@ -177,6 +195,4 @@ def main():
 # Only run when called (not imported)
 if __name__ == "__main__":
     main()
-
-
 

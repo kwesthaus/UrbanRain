@@ -8,9 +8,9 @@ def run(targets, is_admin):
         # TCP ACK to port 80, and an ICMP timestamp request
         icmp_echo_targets_up = icmp_echo.run(targets, print_results=False)
         targets_up.update(icmp_echo_targets_up)
-        tcp_syn_targets_up = tcp_privileged.syn.run(targets, [443], print_results=False)
+        tcp_syn_targets_up = tcp_privileged.syn.run(targets, [443], options = [1, 2, 3, 4, 5], print_results=False)
         targets_up.update(tcp_syn_targets_up)
-        tcp_ack_targets_up = tcp_privileged.ack.run(targets, [80], print_results=False)
+        tcp_ack_targets_up = tcp_privileged.ack.run(targets, [80], options = [2, 3, 4, 5], print_results=False)
         targets_up.update(tcp_ack_targets_up)
         icmp_timestamp_targets_up = icmp_timestamp.run(targets, print_results=False)
         targets_up.update(icmp_timestamp_targets_up)
