@@ -43,6 +43,12 @@ Examples:
     python3 urban_rain.py -p 1-1023 both -sT 192.168.1.32/30 192.168.1.64-192.168.1.95 192.168.1.128
         Unprivileged TCP scan against ports 1-1023 on multiple targets of various notations.
 
+    sudo python3 urban_rain.py -sO port 192.168.0.1
+        Priviledged OS detection module, returns the OS running on provided IP's
+    
+    sudo python3 urban_rain.py -aS port 192.168.0.1
+        Priviledged TCP SYN flood attack targeted at the provided IP
+
     python3 urban_rain.py -h
         or
     python3 urban_rain.py --help

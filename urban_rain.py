@@ -7,6 +7,8 @@ import ctypes
 from scanners import host_up, tcp_connect, udp_connect
 from scanners.tcp_privileged import syn, ack, null, xmas, fin, maimon, window
 from scanners.util.host_parser import parse_hosts
+from attacks import syn_attack
+from scanners.os_detection import os_detection
 import subprocess
 import socket
 import re
@@ -59,7 +61,13 @@ def main():
 
                 python3 urban_rain.py -p 1-1023 both -sT 192.168.1.32/30 192.168.1.64-192.168.1.95 192.168.1.128
                     Unprivileged TCP scan against ports 1-1023 on multiple targets of various notations.
+
+                sudo python3 urban_rain.py -sO port 192.168.0.1
+                    Priviledged OS detection module, returns the OS running on provided IP's
                 
+                sudo python3 urban_rain.py -aS port 192.168.0.1
+                    Priviledged TCP SYN flood attack targeted at the provided IP
+
                 python3 urban_rain.py -h
                     or
                 python3 urban_rain.py --help
@@ -74,9 +82,12 @@ def main():
     parser.add_argument('-sA', action='store_true', help='run a privileged TCP ACK scan')
     parser.add_argument('-sN', action='store_true', help='run a privileged TCP Null scan')
     parser.add_argument('-sX', action='store_true', help='run a privileged TCP Xmas scan')
+    parser.add_argument('-sO', action='store_true', help='run a simple os detection module')
+    parser.add_argument('-aS', action='store_true', help='run a simple syn attack module')
     parser.add_argument('-sF', action='store_true', help='run a privileged TCP FIN scan')
     parser.add_argument('-sM', action='store_true', help='run a privileged TCP Maimon scan')
     parser.add_argument('-sW', action='store_true', help='run a privileged TCP Window scan')
+
 
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
@@ -96,7 +107,7 @@ def main():
     if args.discovery == 'host' or args.discovery == 'both':
         unpacked_targets = host_up.run(unpacked_targets, is_admin)
     if args.discovery == 'port' or args.discovery == 'both':
-        if args.port_range is None:
+        if args.port_range is None and not args.aS and not args.sO:
             print('No port range specified, using defaults.')
         scantype_provided = 0
         if args.sT:
@@ -129,6 +140,18 @@ def main():
                 xmas.run(unpacked_targets, args.port_range)
             else:
                 print('TCP XMAS scan requires privileges, skipping')
+        if args.sO:
+            scantype_provided = 1
+            if is_admin:
+                os_detection.run(unpacked_targets)
+            else:
+                print('OS detection requires privileges, skipping')
+        if args.aS:
+            scantype_provided = 1
+            if is_admin:
+                syn_attack.run(unpacked_targets)
+            else:
+                print('TCP attack requires privileges, skipping')
         if args.sF:
             scantype_provided = 1
             if is_admin:
@@ -147,10 +170,13 @@ def main():
                 window.run(unpacked_targets, args.port_range)
             else:
                 print('TCP Window Scan requires privileges, skipping')
+
         if scantype_provided == 0:
             print('Port scan requested but no scan type provided, skipping')
 
 # Only run when called (not imported)
 if __name__ == "__main__":
     main()
+
+
 
