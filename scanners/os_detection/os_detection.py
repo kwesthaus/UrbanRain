@@ -17,13 +17,11 @@ ttl Linux/Mac -> 64
 
 def run(targets):
     # determine if the user provided one or multiple IP's
-    if (len(targets) > 1):
+    if (len(targets) > 0):
         for target_ip in targets:
             processOSDetection(target_ip)
     elif (len(targets) == 0):
         print('No up hosts to provide OS detection for')
-    else:
-        processOSDetection(targets.pop())
 
 
 # function that receives an ip and returns the OS based on the ttl of response

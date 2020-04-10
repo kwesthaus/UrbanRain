@@ -102,12 +102,6 @@ def main():
     parser.add_argument('-no-operation', action='store_true', help='add no operation TCP option')
     parser.add_argument('-window-scale', action='store_true', help='add window scale TCP option')
 
-    parser.add_argument('-mss', action='store_true', help='add maximum segment size TCP option')
-    parser.add_argument('-sack', action='store_true', help='add SACK permitted TCP option')
-    parser.add_argument('-timestamp', action='store_true', help='add timestamp TCP option')
-    parser.add_argument('-no-operation', action='store_true', help='add no operation TCP option')
-    parser.add_argument('-window-scale', action='store_true', help='add window scale TCP option')
-
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
 
