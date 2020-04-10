@@ -5,34 +5,36 @@ import random
 
 # function called by the client to create packets
 # src_ip and dest_ip are expected to be the string versions of the IP they refer to
-def create(src_ip, dest_ip, source_port, dest_port, flags, options):
+def create(src_ip, dest_ip, source_port, dest_port, flags, options=None):
 
     random.seed()
 
     b_options = b''
-    # add options
-    if options.count(1) != 0:
-        # maximum segment size
-        b_options += b'\x02\x04'            # Kind and length
-        b_options += b'\x05\xB4'            # MSS Value
-    if options.count(2) != 0:
-        # SACK permitted
-        b_options += b'\x04\x02'            # Kind and length
-    if options.count(3) != 0:
-        # timestamp
-        b_options += b'\x08\x0A'            # Kind and length
-        b_options += b'\x1E\x2C\x27\xCF'    # Timestamp Value
-        b_options += b'\x00\x00\x00\x00'    # TS Echo Reply
-    if options.count(4) != 0:
-        # no operation
-        b_options += b'\x01'                # Kind
-    if options.count(5) != 0:
-        # window scale
-        b_options += b'\x03\x03'            # Kind and length
-        b_options += b'\x07'                # Shift scale
-    if len(b_options) % 4 != 0:
-        nop_padding_length = 4*((len(b_options)//4)+1) - len(b_options)
-        b_options += (b'\x01'*nop_padding_length)
+
+    if options is not None:
+        # add options
+        if options.count(1) != 0:
+            # maximum segment size
+            b_options += b'\x02\x04'            # Kind and length
+            b_options += b'\x05\xB4'            # MSS Value
+        if options.count(2) != 0:
+            # SACK permitted
+            b_options += b'\x04\x02'            # Kind and length
+        if options.count(3) != 0:
+            # timestamp
+            b_options += b'\x08\x0A'            # Kind and length
+            b_options += b'\x1E\x2C\x27\xCF'    # Timestamp Value
+            b_options += b'\x00\x00\x00\x00'    # TS Echo Reply
+        if options.count(4) != 0:
+            # no operation
+            b_options += b'\x01'                # Kind
+        if options.count(5) != 0:
+            # window scale
+            b_options += b'\x03\x03'            # Kind and length
+            b_options += b'\x07'                # Shift scale
+        if len(b_options) % 4 != 0:
+            nop_padding_length = 4*((len(b_options)//4)+1) - len(b_options)
+            b_options += (b'\x01'*nop_padding_length)
 
     # Indicates the length of the TCP header in units of 32-bit doublewords
     header_length = 5 + len(b_options)//4

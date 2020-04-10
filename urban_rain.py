@@ -23,6 +23,12 @@ def parseNumRange(string):
     end = m.group(2) or start
     return list(range(int(start,10), int(end,10)+1))
 
+# Check if fragment size is multiple of 8
+def fragmentSize(string):
+    if not (string == "8" or string == "16"):
+        raise argparse.ArgumentTypeError("Must be a value of 8 or 16.")
+    return int(string)
+
 def check_admin():
     # Check admin rights
     try:
@@ -87,6 +93,14 @@ def main():
     parser.add_argument('-sF', action='store_true', help='run a privileged TCP FIN scan')
     parser.add_argument('-sM', action='store_true', help='run a privileged TCP Maimon scan')
     parser.add_argument('-sW', action='store_true', help='run a privileged TCP Window scan')
+    
+    parser.add_argument('-f', '--fragmenter', type=fragmentSize, help='fragment privileged TCP scan')
+
+    parser.add_argument('-mss', action='store_true', help='add maximum segment size TCP option')
+    parser.add_argument('-sack', action='store_true', help='add SACK permitted TCP option')
+    parser.add_argument('-timestamp', action='store_true', help='add timestamp TCP option')
+    parser.add_argument('-no-operation', action='store_true', help='add no operation TCP option')
+    parser.add_argument('-window-scale', action='store_true', help='add window scale TCP option')
 
     parser.add_argument('-mss', action='store_true', help='add maximum segment size TCP option')
     parser.add_argument('-sack', action='store_true', help='add SACK permitted TCP option')
@@ -137,25 +151,25 @@ def main():
         if args.sS:
             scantype_provided = 1
             if is_admin:
-                syn.run(unpacked_targets, args.port_range, optionList)
+                syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP SYN scan requires privileges, skipping')
         if args.sA:
             scantype_provided = 1
             if is_admin:
-                ack.run(unpacked_targets, args.port_range, optionList)
+                ack.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP ACK scan requires privileges, skipping')
         if args.sN:
             scantype_provided = 1
             if is_admin:
-                null.run(unpacked_targets, args.port_range, optionList)
+                null.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP NULL scan requires privileges, skipping')
         if args.sX:
             scantype_provided = 1
             if is_admin:
-                xmas.run(unpacked_targets, args.port_range, optionList)
+                xmas.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP XMAS scan requires privileges, skipping')
         if args.sO:
@@ -173,19 +187,19 @@ def main():
         if args.sF:
             scantype_provided = 1
             if is_admin:
-                fin.run(unpacked_targets, args.port_range, optionList)
+                fin.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP FIN scan requires privileges, skipping')
         if args.sM:
             scantype_provided = 1
             if is_admin:
-                maimon.run(unpacked_targets, args.port_range, optionList)
+                maimon.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP Maimon Scan requires privileges, skipping')
         if args.sW:
             scantype_provided = 1
             if is_admin:
-                window.run(unpacked_targets, args.port_range, optionList)
+                window.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
             else:
                 print('TCP Window Scan requires privileges, skipping')
 

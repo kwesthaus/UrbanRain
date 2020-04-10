@@ -10,7 +10,7 @@ from scanners.util.defaults import tcp_ports
             # label it as filtered
         # If you get ICMP error message back (type 3, code 0, 1, 2, 3, 9, 10, 13), 
             # label as filtered
-def run(targets, port_range, options, print_results=True):
+def run(targets, port_range, options, fragment_size, print_results=True):
 
     if port_range is None:
         port_range = tcp_ports
@@ -30,7 +30,7 @@ def run(targets, port_range, options, print_results=True):
             # set only the Ack flag
             flags = [0, 0, 0, 0, 1, 0, 0, 0, 0]
 
-            packet = privileged_tcp_scan.scan(target, port, flags, options)
+            packet = privileged_tcp_scan.scan(target, port, flags, options, fragment_size)
 
             if packet is not None:
                 protocol_number, data = util.parse_packet(packet)

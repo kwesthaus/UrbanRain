@@ -4,7 +4,7 @@ import sys
 import ctypes
 import cust_packet.util
 
-def create(transport_layer_segment, src_ip, dest_ip):
+def create(transport_layer_segment, src_ip, dest_ip, ip_id=1, more_fragments=0, fragment_offset=0):
 
     # store values for header fields in variables
     ip_version_header_length = b'\x45'  # IP version, Header length
@@ -12,11 +12,12 @@ def create(transport_layer_segment, src_ip, dest_ip):
     tot_len = len(transport_layer_segment) + 20  # IP total length
     tot_len = tot_len.to_bytes(2, "big")  # convert to bytes representation with big-endian interpretation
 
-    ip_id = b'\x00\x01'  # IP ID#
+    b_ip_id = ip_id.to_bytes(2, "big")  # IP ID#
 
-    # reference for ip_fragmentation:
-    # https://inc0x0.com/tcp-ip-packets-introduction/tcp-ip-packets-4-creating-a-syn-port-scanner/
-    ip_fragmentation = b'\x00\x00'  # IP fragmentation bit
+    if more_fragments:
+        # Set the 3rd MSB of the high byte
+        fragment_offset += 1<<13
+    b_ip_fragmentation = fragment_offset.to_bytes(2, "big")  # IP fragmentation bit
 
     ip_ttl = b'\x40'  # IP Time to live
     transport_layer_protocol = b'\x06'  # Transport layer protocol = TCP
@@ -30,8 +31,8 @@ def create(transport_layer_segment, src_ip, dest_ip):
     custom_ip_header = ip_version_header_length
     custom_ip_header += ip_tos
     custom_ip_header += tot_len
-    custom_ip_header += ip_id
-    custom_ip_header += ip_fragmentation
+    custom_ip_header += b_ip_id
+    custom_ip_header += b_ip_fragmentation
     custom_ip_header += ip_ttl
     custom_ip_header += transport_layer_protocol
     custom_ip_header += checksum

