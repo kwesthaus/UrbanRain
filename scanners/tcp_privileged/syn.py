@@ -2,7 +2,7 @@ from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
 
-def run(targets, port_range, options, fragment_size, print_results=True):
+def run(targets, port_range, options, fragment_size, src_ip, print_results=True):
 
     # if no ports were specified, scan default TCP ports
     if port_range is None:
@@ -25,7 +25,7 @@ def run(targets, port_range, options, fragment_size, print_results=True):
             # set only SYN flag
             flags = [0, 0, 0, 0, 0, 0, 0, 1, 0]
 
-            packet = privileged_tcp_scan.scan(target, port, flags, options, fragment_size)
+            packet = privileged_tcp_scan.scan(target, port, flags, options, fragment_size, src_ip)
             # This call only sends the SYN and receives the SYN-ACK. Normally we
             # should explicitly terminate the connection without completing
             # the three-way handshake (part 3 is an ACK packet) since this is

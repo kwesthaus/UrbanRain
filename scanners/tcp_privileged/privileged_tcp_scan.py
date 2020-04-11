@@ -10,12 +10,13 @@ from scanners import fragment_packet
 import scapy.all
 from scapy.all import *
 
-def scan(target, port, flags, options, fragment_size):
+def scan(target, port, flags, options, fragment_size, src_ip=None):
     random.seed()
 
-    # Use scapy to figure out the interface that can get us to the target
-    # Then store the IP address assigned to that interface as our source IP
-    src_ip = conf.route.route(target)[1]
+    if not src_ip:
+        # Use scapy to figure out the interface that can get us to the target
+        # Then store the IP address assigned to that interface as our source IP
+        src_ip = conf.route.route(target)[1]
     # Choose a dynamic (TCP) client port. Max port number is 65536. IANA
     # and Windows specify the range as starting at 49152 while linux uses
     # 32768 as the lower bound. We choose the more restrictive of these to

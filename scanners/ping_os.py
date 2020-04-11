@@ -28,7 +28,10 @@ def run(targets, print_results=True, verbose=False):
                 if 'bytes from' in decoded_line:
                     targets_up.add(target)
                 if print_results:
-                    if 'bytes of data' in decoded_line:
+                    # Handles OS-specific output from the ping command
+                    # "bytes from" -> posix systems
+                    # "Reply from" -> nt systems
+                    if 'bytes from' in decoded_line or 'Reply from' in decoded_line:
                         print_flag = False
                     if verbose:
                         # print everything

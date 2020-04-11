@@ -43,6 +43,15 @@ def check_admin():
         is_admin = False
     return is_admin
 
+def valid_ipv4(address):
+    octets = address.split('.')
+    if len(octets) != 4:
+        return None
+    for item in octets:
+        if not(0 <= int(item) <= 255):
+            return None
+    return ipaddress.IPv4Address(address)
+
 def main():
 
     is_admin = check_admin()
@@ -102,6 +111,8 @@ def main():
     parser.add_argument('-no-operation', action='store_true', help='add no operation TCP option')
     parser.add_argument('-window-scale', action='store_true', help='add window scale TCP option')
 
+    parser.add_argument('-s', '--src-addr', type=valid_ipv4, help='spoof this IPv4 address as the source of scans')
+
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
 
@@ -145,25 +156,25 @@ def main():
         if args.sS:
             scantype_provided = 1
             if is_admin:
-                syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP SYN scan requires privileges, skipping')
         if args.sA:
             scantype_provided = 1
             if is_admin:
-                ack.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                ack.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP ACK scan requires privileges, skipping')
         if args.sN:
             scantype_provided = 1
             if is_admin:
-                null.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                null.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP NULL scan requires privileges, skipping')
         if args.sX:
             scantype_provided = 1
             if is_admin:
-                xmas.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                xmas.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP XMAS scan requires privileges, skipping')
         if args.sO:
@@ -175,25 +186,25 @@ def main():
         if args.aS:
             scantype_provided = 1
             if is_admin:
-                syn_attack.run(unpacked_targets)
+                syn_attack.run(unpacked_targets, args.src_addr)
             else:
                 print('TCP attack requires privileges, skipping')
         if args.sF:
             scantype_provided = 1
             if is_admin:
-                fin.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                fin.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP FIN scan requires privileges, skipping')
         if args.sM:
             scantype_provided = 1
             if is_admin:
-                maimon.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                maimon.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP Maimon Scan requires privileges, skipping')
         if args.sW:
             scantype_provided = 1
             if is_admin:
-                window.run(unpacked_targets, args.port_range, optionList, args.fragmenter)
+                window.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
             else:
                 print('TCP Window Scan requires privileges, skipping')
 

