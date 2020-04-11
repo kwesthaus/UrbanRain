@@ -10,7 +10,7 @@ from scanners.util.defaults import tcp_ports
             # label it as filtered
         # If you get ICMP error message back (type 3, code 0, 1, 2, 3, 9, 10, 13), 
             # label as filtered
-def run(targets, port_range, options, fragment_size, src_ip, print_results=True):
+def run(targets, port_range, options, fragment_size, src_ip=None, print_results=True):
 
     if port_range is None:
         port_range = tcp_ports

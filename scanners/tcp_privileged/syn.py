@@ -2,7 +2,7 @@ from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
 
-def run(targets, port_range, options, fragment_size, src_ip, print_results=True):
+def run(targets, port_range, options, fragment_size, src_ip=None, print_results=True):
 
     # if no ports were specified, scan default TCP ports
     if port_range is None:

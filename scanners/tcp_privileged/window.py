@@ -3,7 +3,7 @@ from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
 
 
-def run(targets, ports, options, fragment_size, src_ip, print_results=True):
+def run(targets, ports, options, fragment_size, src_ip=None, print_results=True):
 
     # if no ports were specified, scan the default TCP ports
     if ports is None:
