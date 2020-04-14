@@ -1,3 +1,4 @@
+# David Levine, Kyle Westhaus, and Jordan Miller
 import socket
 from enum import Enum
 from scanners.util.defaults import tcp_ports

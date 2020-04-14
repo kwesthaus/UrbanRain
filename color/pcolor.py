@@ -1,3 +1,4 @@
+# Jordan Miller
 class color:
     OPEN = '\033[92m'
     WARNING = '\033[93m'

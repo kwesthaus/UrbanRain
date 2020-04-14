@@ -1,3 +1,4 @@
+# Everyone contributed to this file
 #!/usr/bin/env python
 
 import argparse

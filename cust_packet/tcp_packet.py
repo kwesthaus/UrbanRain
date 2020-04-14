@@ -1,3 +1,4 @@
+# Nick Morris and Ben Hiner
 import binascii
 import struct
 import cust_packet.util

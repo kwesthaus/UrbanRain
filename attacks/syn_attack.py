@@ -1,3 +1,4 @@
+# Nick Morris and Jordan Miller
 from scapy.all import *
 from cust_packet import tcp_packet, ip_packet
 import socket

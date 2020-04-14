@@ -1,3 +1,4 @@
+# Nick Morris and Kyle Westhaus
 import binascii
 import struct
 import sys

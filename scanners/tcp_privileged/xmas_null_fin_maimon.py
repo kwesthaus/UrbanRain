@@ -1,3 +1,4 @@
+# David Levine and Mark Gilliland
 from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports

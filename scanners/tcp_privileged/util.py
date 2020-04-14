@@ -1,3 +1,4 @@
+# Mark Gilliland, David Levine, and Kyle Westhaus
 import binascii
 from enum import Enum
 
