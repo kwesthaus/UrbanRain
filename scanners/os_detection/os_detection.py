@@ -1,5 +1,6 @@
 from scapy.all import *
 from scapy.layers.inet import IP, ICMP
+from color import pcolor
 
 
 """
@@ -21,7 +22,7 @@ def run(targets):
         for target_ip in targets:
             processOSDetection(target_ip)
     elif (len(targets) == 0):
-        print('No up hosts to provide OS detection for')
+        print(f'{pcolor.color.ERROR}No up hosts to provide OS detection for{pcolor.color.CLEAR}')
 
 
 # function that receives an ip and returns the OS based on the ttl of response
@@ -33,7 +34,7 @@ def processOSDetection(ip):
 
     # parse result data and print to the client
     if response == None:
-        print ("no response from provided IP")
+        print (f'{pcolor.color.WARNING}no response from provided IP{pcolor.color.CLEAR}')
     elif IP in response:  
         if response.getlayer(IP).ttl <= 64:
             os_result = "Unix based machine"

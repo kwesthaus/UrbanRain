@@ -4,6 +4,7 @@ import socket
 import binascii
 import os
 import threading, time, sys
+from color import pcolor
 
 
 """
@@ -37,7 +38,7 @@ def run(targets, src_ip=None):
             try:
                 attackMultipleTargets(src_ip, dest_ip)
             except (KeyboardInterrupt, SystemExit):
-                print(os.linesep + "caught keyboard interrupt and system exit occurred, halting attack.")
+                print(pcolor.color.ERROR + os.linesep + "caught keyboard interrupt and system exit occurred, halting attack." + pcolor.color.CLEAR)
                 sys.exit()
 
     elif (len(targets) == 0):
@@ -56,7 +57,7 @@ def run(targets, src_ip=None):
         try:
             attackSingleTarget(src_ip, dest_ip)
         except (KeyboardInterrupt, SystemExit):
-            print(os.linesep + "caught keyboard interrupt and system exit occurred, halting attack.")
+            print(pcolor.color.ERROR + os.linesep + "caught keyboard interrupt and system exit occurred, halting attack." + pcolor.color.CLEAR)
             sys.exit()
 
 
@@ -140,9 +141,9 @@ def attackSingleTarget(src_ip, dest_ip):
                         print('Socket buffer full, waiting one second then continuing to flood target.')
                         time.sleep(1)
                     else:
-                        print(f'Unspecified OSError: {e}')
+                        print(f'{pcolor.color.ERROR}Unspecified OSError: {e}{pcolor.color.CLEAR}')
                 except socket.error as e:
-                    print(f'Unspecified socket error: {e}')
+                    print(f'{pcolor.color.ERROR}Unspecified socket error: {e}{pcolor.color.CLEAR}')
 
 
 # define a destination for multiple threads to stage attack on the same ip, thus increase attack velocity. 
@@ -173,7 +174,7 @@ def attackVelocityIncrease(src_ip, dest_ip):
                         print('Socket buffer full, waiting one second then continuing to flood target.')
                         time.sleep(1)
                     else:
-                        print(f'Unspecified OSError: {e}')
+                        print(f'{pcolor.color.ERROR}Unspecified OSError: {e}{pcolor.color.CLEAR}')
                 except socket.error as e:
-                    print(f'Unspecified socket error: {e}')
+                    print(f'{pcolor.color.ERROR}Unspecified socket error: {e}{pcolor.color.CLEAR}')
 

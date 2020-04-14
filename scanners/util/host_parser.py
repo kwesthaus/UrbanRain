@@ -1,4 +1,5 @@
 import ipaddress
+from color import pcolor
 
 # Parse for hosts to scan
 # Each item in the targets list should use exactly one of the following mutually exclusive formats:
@@ -17,7 +18,7 @@ def parse_hosts(targets):
         else: # we have just a single token to parse (which may specify multiple hosts using wildcard notation)
             host_bytes = target.split('.')
             if (len(host_bytes) != 4):
-                print(f'\'{target}\' cannot be interpreted as an IPv4 host')
+                print(f'{pcolor.color.WARNING}\'{target}\' cannot be interpreted as an IPv4 host{pcolor.color.CLEAR}')
                 exit(-1)
             list_of_hosts.append(target)
     return list_of_hosts
@@ -91,7 +92,7 @@ def process_range(start_host, end_host):
                              range(0, end_fourth_byte + 1)]  # +1 since ranges don't include endpoint in python
             specified_range.extend(new_additions)
     else:
-        print(start_host + '-' + end_host + 'cannot be interpreted as a range of IPv4 hosts')
+        print(pcolor.color.WARNING + start_host + '-' + end_host + ' cannot be interpreted as a range of IPv4 hosts' + pcolor.color.CLEAR)
         exit(-1)
     return specified_range
 

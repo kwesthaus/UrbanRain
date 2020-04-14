@@ -1,4 +1,5 @@
 import socket
+from color import pcolor
 from scanners import tcp_connect, udp_connect, ping_os, icmp_echo, icmp_timestamp, tcp_privileged
 
 def run(targets, is_admin):
@@ -29,4 +30,5 @@ def run(targets, is_admin):
 def print_results(targets_up):
     # Print results
     print('Done detecting hosts.')
-    print(f'Hosts that are up: {targets_up}')
+    print('Hosts that are up:') 
+    print(f'{pcolor.color.OPEN}{targets_up}{pcolor.color.CLEAR}')

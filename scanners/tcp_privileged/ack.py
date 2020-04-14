@@ -1,6 +1,7 @@
 from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
+from color import pcolor
 
 # algorithm: 
     # send out probe packet with only the ACK flag set
@@ -84,12 +85,23 @@ def run(targets, port_range, options, fragment_size, src_ip=None, print_results=
 
     if print_results:
         print_result(filtered_targets, unfiltered_targets, unexpected_targets)
+    else:
+        log(filtered_targets, unfiltered_targets, unexpected_targets)
     return up_hosts
 
 
 def print_result(filtered_targets, unfiltered_targets, unexpected_targets):
     print('TCP Ack Scan complete.')
-    print(f'Filtered ports by target: {filtered_targets}')
-    print(f'Unfiltered ports by target: {unfiltered_targets}')
-    print(f'Unexpected responses by target: {unexpected_targets}')
+    print(f'Filtered ports by target:') 
+    print(f'{pcolor.color.CLOSED}{filtered_targets}{pcolor.color.CLEAR}')
+    print(f'Unfiltered ports by target:')
+    print(f'{pcolor.color.OPEN}{unfiltered_targets}{pcolor.color.CLEAR}')
+    print(f'Unexpected responses by target:')
+    print(f'{pcolor.color.WARNING}{unexpected_targets}{pcolor.color.CLEAR}')
 
+def log(filtered_targets, unfiltered_targets, unexpected_targets):
+    log_file = open('log.txt','a')
+    log_file.write('TCP Ack Scan complete.')
+    log_file.write(f'Filtered ports by target: {pcolor.color.CLOSED}{filtered_targets}{pcolor.color.CLEAR}')
+    log_file.write(f'Unfiltered ports by target: {pcolor.color.OPEN}{unfiltered_targets}{pcolor.color.CLEAR}')
+    log_file.write(f'Unexpected responses by target: {pcolor.color.WARNING}{unexpected_targets}{pcolor.color.CLEAR}')

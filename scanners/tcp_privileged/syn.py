@@ -1,6 +1,7 @@
 from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
+from color import pcolor
 
 def run(targets, port_range, options, fragment_size, src_ip=None, print_results=True):
 
@@ -91,12 +92,27 @@ def run(targets, port_range, options, fragment_size, src_ip=None, print_results=
 
     if print_results:
         print_result(open_targets, closed_targets, filtered_targets, unexpected_targets)
+    else:
+        log(open_targets, closed_targets, filtered_targets, unexpected_targets)
     return up_hosts
 
 
-def print_result(open, closed, filtered, unexpected):
+def print_result(open_targets, closed, filtered, unexpected):
     print('TCP SYN Stealth Scan complete.')
-    print(f'Open ports by target: {open}')
-    print(f'Closed ports by target: {closed}')
-    print(f'Filtered ports by target: {filtered}')
-    print(f'Unexpected responses by target: {unexpected}')
+    print(f'Open ports by target:')
+    print(f'{pcolor.color.OPEN}{open_targets}{pcolor.color.CLEAR}')
+    print(f'Closed ports by target:')
+    print(f'{pcolor.color.CLOSED}{closed}{pcolor.color.CLEAR}')
+    print(f'Filtered ports by target:')
+    print(f'{pcolor.color.CLOSED}{filtered}{pcolor.color.CLEAR}')
+    print(f'Unexpected responses by target:')
+    print(f'{pcolor.color.WARNING}{unexpected}{pcolor.color.CLEAR}')
+
+    
+def log(open_targets, closed, filtered, unexpected):
+    log_file = open('log.txt','a')
+    log_file.write('TCP SYN Stealth Scan complete.')
+    log_file.write(f'Open ports by target: {pcolor.color.OPEN}{open_targets}{pcolor.color.CLEAR}')
+    log_file.write(f'Closed ports by target: {pcolor.color.CLOSED}{closed}{pcolor.color.CLEAR}')
+    log_file.write(f'Filtered ports by target: {pcolor.color.CLOSED}{filtered}{pcolor.color.CLEAR}')
+    log_file.write(f'Unexpected responses by target: {pcolor.color.WARNING}{unexpected}{pcolor.color.CLEAR}')

@@ -1,6 +1,7 @@
 import socket
 from enum import Enum
 from scanners.util.defaults import tcp_ports
+from color import pcolor
 
 def run(targets, port_range, print_results=True):
     if port_range is None:
@@ -42,6 +43,8 @@ def run(targets, port_range, print_results=True):
             filtered_targets[target] = filtered_ports
     if print_results:
         output_ports(open_targets, closed_targets, filtered_targets)
+    else:
+        log(open_targets, closed_targets, filtered_targets)
     return up_hosts
 
 
@@ -71,18 +74,28 @@ def get_port_status(s, host, port):
                 # be scanned, so skip this port.
                 return PortStates.FILTERED
             else:
-                print(f'Unspecified OSError: {e}')
+                print(f'{pcolor.color.ERROR}Unspecified OSError: {e}{pcolor.color.CLEAR}')
         except socket.error as e:
-            print(f'Unspecified socket error: {e}')
+            print(f'{pcolor.color.ERROR}Unspecified socket error: {e}{pcolor.color.CLEAR}')
     # We got through three times without hitting any of the other returns,
     # so assume we aren't getting responses because it's filtered
     return PortStates.FILTERED
 
 def output_ports(open_targets, closed_targets, filtered_targets):
     print('TCP connect() port scan complete.')
-    print(f'Open ports by target: {open_targets}')
-    print(f'Closed ports by target: {closed_targets}')
-    print(f'Filtered ports by target: {filtered_targets}')
+    print(f'Open ports by target:')
+    print(f'{pcolor.color.OPEN}{open_targets}{pcolor.color.CLEAR}')
+    print(f'Closed ports by target:')
+    print(f'{pcolor.color.CLOSED}{closed_targets}{pcolor.color.CLEAR}')
+    print(f'Filtered ports by target:')
+    print(f'{pcolor.color.WARNING}{filtered_targets}{pcolor.color.CLEAR}')
+ 
+def log(open_targets, closed_targets, filtered_targets):
+    log_file = open('log.txt','a')
+    log_file.write('TCP connect() port scan complete.\n')
+    log_file.write(f'Open ports by target: {pcolor.color.OPEN}{open_targets}{pcolor.color.CLEAR}\n')
+    log_file.write(f'Closed ports by target: {pcolor.color.CLOSED}{closed_targets}{pcolor.color.CLEAR}\n')
+    log_file.write(f'Filtered ports by target: {pcolor.color.WARNING}{filtered_targets}{pcolor.color.CLEAR}\n')
 
 class PortStates(Enum):
     OPEN = 1

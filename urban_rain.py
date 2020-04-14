@@ -4,6 +4,7 @@ import argparse
 import ipaddress
 import os
 import ctypes
+from color import pcolor
 from scanners import host_up, tcp_connect, udp_connect
 from scanners.tcp_privileged import syn, ack, null, xmas, fin, maimon, window
 from scanners.util.host_parser import parse_hosts
@@ -18,7 +19,7 @@ import textwrap
 def parseNumRange(string):
     m = re.match(r'(\d+)(?:-(\d+))?$', string)
     if not m:
-        raise ArgumentTypeError("'" + string + "' is not a range of numbers (e.g. '80-100').")
+        raise argparse.ArgumentTypeError(pcolor.color.ERROR + "'" + string + "' is not a range of numbers (e.g. '80-100')." + pcolor.color.CLEAR)
     start = m.group(1)
     end = m.group(2) or start
     return list(range(int(start,10), int(end,10)+1))
@@ -39,7 +40,7 @@ def check_admin():
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
     except:
         # Unknown OS, cannot determine privileged status
-        print('Cannot determine privileged status, assuming unprivileged')
+        print(pcolor.color.WARNING + 'Cannot determine privileged status, assuming unprivileged' + pcolor.color.CLEAR)
         is_admin = False
     return is_admin
 
@@ -113,6 +114,7 @@ def main():
 
     parser.add_argument('-s', '--src-addr', type=valid_ipv4, help='spoof this IPv4 address as the source of scans')
 
+    parser.add_argument('-l', '--log',action='store_false', help='write output to a log file instead of stdout')
     parser.add_argument('-v', '--verbose', action='store_true', default=False , help='verbose logging')
     args = parser.parse_args()
 
@@ -149,67 +151,67 @@ def main():
         scantype_provided = 0
         if args.sT:
             scantype_provided = 1
-            tcp_connect.run(unpacked_targets, args.port_range)
+            tcp_connect.run(unpacked_targets, args.port_range,args.log)
         if args.sU:
             scantype_provided = 1
-            udp_connect.run(unpacked_targets, args.port_range)
+            udp_connect.run(unpacked_targets, args.port_range, args.log)
         if args.sS:
             scantype_provided = 1
             if is_admin:
-                syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
-                print('TCP SYN scan requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP SYN scan requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sA:
             scantype_provided = 1
             if is_admin:
-                ack.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                ack.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
-                print('TCP ACK scan requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP ACK scan requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sN:
             scantype_provided = 1
             if is_admin:
-                null.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                null.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
-                print('TCP NULL scan requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP NULL scan requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sX:
             scantype_provided = 1
             if is_admin:
-                xmas.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                xmas.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
-                print('TCP XMAS scan requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP XMAS scan requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sO:
             scantype_provided = 1
             if is_admin:
                 os_detection.run(unpacked_targets)
             else:
-                print('OS detection requires privileges, skipping')
+                print(pcolor.color.WARNING + 'OS detection requires privileges, skipping' + pcolor.color.CLEAR)
         if args.aS:
             scantype_provided = 1
             if is_admin:
                 syn_attack.run(unpacked_targets, args.src_addr)
             else:
-                print('TCP attack requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP attack requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sF:
             scantype_provided = 1
             if is_admin:
-                fin.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                fin.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
-                print('TCP FIN scan requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP FIN scan requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sM:
             scantype_provided = 1
             if is_admin:
-                maimon.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                maimon.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
                 print('TCP Maimon Scan requires privileges, skipping')
         if args.sW:
             scantype_provided = 1
             if is_admin:
-                window.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr)
+                window.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
             else:
-                print('TCP Window Scan requires privileges, skipping')
+                print(pcolor.color.WARNING + 'TCP Window Scan requires privileges, skipping' + pcolor.color.CLEAR)
 
         if scantype_provided == 0:
-            print('Port scan requested but no scan type provided, skipping')
+            print(pcolor.color.WARNING + 'Port scan requested but no scan type provided, skipping' + pcolor.color.CLEAR)
 
 # Only run when called (not imported)
 if __name__ == "__main__":

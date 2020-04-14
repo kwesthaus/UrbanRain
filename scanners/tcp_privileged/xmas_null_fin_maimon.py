@@ -1,6 +1,7 @@
 from scanners.tcp_privileged import privileged_tcp_scan, util
 from scanners.tcp_privileged.util import Flags
 from scanners.util.defaults import tcp_ports
+from color import pcolor
 
 # performs either a null or an xmas scan depending on which flag is set
 def run(targets, ports, flags, options, fragment_size, src_ip=None, print_results=True):
@@ -77,16 +78,26 @@ def run(targets, ports, flags, options, fragment_size, src_ip=None, print_result
 
     if print_results:
         print_result(open_filtered, closed, filtered, unexpected)
-
+    else:
+        log(open_filtered, closed, filtered, unexpected)
     return up_hosts
 
 
 def print_result(open_filtered, closed, filtered, unexpected):
     print('Scan complete.')
-    print(f'Open|Filtered ports by target: {open_filtered}')
-    print(f'Closed ports by target: {closed}')
-    print(f'Filtered ports by target: {filtered}')
-    print(f'Unexpected responses by target: {unexpected}')
+    print(f'Open|Filtered ports by target:')
+    print(f'{pcolor.color.OPEN}{open_filtered}{pcolor.color.CLEAR}')
+    print(f'Closed ports by target:')
+    print(f'{pcolor.color.CLOSED}{closed}{pcolor.color.CLEAR}')
+    print(f'Filtered ports by target:')
+    print(f'{pcolor.color.CLOSED}{filtered}{pcolor.color.CLEAR}')
+    print(f'Unexpected responses by target:')
+    print(f'{pcolor.color.WARNING}{unexpected}{pcolor.color.CLEAR}')
 
-
-
+def log(open_filtered, closed, filtered, unexpected):
+    log_file = open('log.txt','a')
+    log_file.write('Scan complete.')
+    log_file.write(f'Open|Filtered ports by target: {pcolor.color.OPEN}{open_filtered}{pcolor.color.CLEAR}')
+    log_file.write(f'Closed ports by target: {pcolor.color.CLOSED}{closed}{pcolor.color.CLEAR}')
+    log_file.write(f'Filtered ports by target: {pcolor.color.CLOSED}{filtered}{pcolor.color.CLEAR}')
+    log_file.write(f'Unexpected responses by target: {pcolor.color.WARNING}{unexpected}{pcolor.color.CLEAR}')
