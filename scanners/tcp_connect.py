@@ -46,7 +46,7 @@ def run(targets, port_range, print_results=True):
         output_ports(open_targets, closed_targets, filtered_targets)
     else:
         log(open_targets, closed_targets, filtered_targets)
-    return up_hosts
+    return up_hosts, open_targets
 
 
 def get_port_status(s, host, port):

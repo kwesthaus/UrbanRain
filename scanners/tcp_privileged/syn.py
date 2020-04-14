@@ -95,7 +95,7 @@ def run(targets, port_range, options, fragment_size, src_ip=None, print_results=
         print_result(open_targets, closed_targets, filtered_targets, unexpected_targets)
     else:
         log(open_targets, closed_targets, filtered_targets, unexpected_targets)
-    return up_hosts
+    return up_hosts, open_targets
 
 
 def print_result(open_targets, closed, filtered, unexpected):

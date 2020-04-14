@@ -85,7 +85,7 @@ def run(targets, ports, options, fragment_size, src_ip=None, print_results=True)
         print_result(open_targets, closed_targets, filtered_targets, unexpected_targets)
     else:
         log(open_targets, closed_targets, filtered_targets, unexpected_targets)
-    return
+    return open_targets
 
 
 def print_result(open_targets, closed, filtered, unexpected):

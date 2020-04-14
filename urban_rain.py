@@ -12,19 +12,26 @@ from scanners.tcp_privileged import syn, ack, null, xmas, fin, maimon, window
 from scanners.util.host_parser import parse_hosts
 from attacks import syn_attack
 from scanners.os_detection import os_detection
+from scanners.service_detection import service_detection
 import subprocess
 import socket
 import re
 import textwrap
+import time
 
 # Parser for port ranges
 def parseNumRange(string):
     m = re.match(r'(\d+)(?:-(\d+))?$', string)
     if not m:
-        raise argparse.ArgumentTypeError(pcolor.color.ERROR + "'" + string + "' is not a range of numbers (e.g. '80-100')." + pcolor.color.CLEAR)
-    start = m.group(1)
-    end = m.group(2) or start
-    return list(range(int(start,10), int(end,10)+1))
+        m = re.match(r'(\d+)(?:,(\d+))*$', string)
+        if not m:
+            raise argparse.ArgumentTypeError(pcolor.color.ERROR + "'" + string + "' is not a range of numbers (e.g. '80-100')." + pcolor.color.CLEAR)
+        else:
+            return [int(group) for group in string.split(',')]
+    else:
+        start = m.group(1)
+        end = m.group(2) or start
+        return list(range(int(start,10), int(end,10)+1))
 
 # Check if fragment size is multiple of 8
 def fragmentSize(string):
@@ -105,6 +112,7 @@ def main():
     parser.add_argument('-sF', action='store_true', help='run a privileged TCP FIN scan')
     parser.add_argument('-sM', action='store_true', help='run a privileged TCP Maimon scan')
     parser.add_argument('-sW', action='store_true', help='run a privileged TCP Window scan')
+    parser.add_argument('-sV', action='store_true', help='run service detection on open ports')
     
     parser.add_argument('-f', '--fragmenter', type=fragmentSize, help='fragment privileged TCP scan')
 
@@ -144,6 +152,8 @@ def main():
         else:
             unpacked_targets.add(str(target))
 
+    ports_open = {}
+
     # Run selected scan types (can be multiple)
     if args.discovery == 'host' or args.discovery == 'both':
         unpacked_targets = host_up.run(unpacked_targets, is_admin)
@@ -153,14 +163,16 @@ def main():
         scantype_provided = 0
         if args.sT:
             scantype_provided = 1
-            tcp_connect.run(unpacked_targets, args.port_range,args.log)
+            tcp_connect_targets_up, tcp_connect_ports_open = tcp_connect.run(unpacked_targets, args.port_range,args.log)
+            ports_open.update(tcp_connect_ports_open)
         if args.sU:
             scantype_provided = 1
             udp_connect.run(unpacked_targets, args.port_range, args.log)
         if args.sS:
             scantype_provided = 1
             if is_admin:
-                syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
+                tcp_syn_targets_up, tcp_syn_ports_open = syn.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
+                ports_open.update(tcp_syn_ports_open)
             else:
                 print(pcolor.color.WARNING + 'TCP SYN scan requires privileges, skipping' + pcolor.color.CLEAR)
         if args.sA:
@@ -208,9 +220,19 @@ def main():
         if args.sW:
             scantype_provided = 1
             if is_admin:
-                window.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
+                tcp_window_ports_open = window.run(unpacked_targets, args.port_range, optionList, args.fragmenter, args.src_addr, args.log)
+                ports_open.update(tcp_window_ports_open)
             else:
                 print(pcolor.color.WARNING + 'TCP Window Scan requires privileges, skipping' + pcolor.color.CLEAR)
+        if args.sV:
+            scantype_provided = 1
+            if not (args.sT or args.sS or args.sW):
+                print(pcolor.color.WARNING + 'Service detection must be paired with either a TCP Connect, TCP SYN, or TCP Window scan, skipping' + pcolor.color.CLEAR)
+            elif len(ports_open) == 0:
+                print(pcolor.color.WARNING + 'No open ports passed to service detection, skipping' + pcolor.color.CLEAR)
+            else:
+                time.sleep(1)
+                service_detection.run(ports_open)
 
         if scantype_provided == 0:
             print(pcolor.color.WARNING + 'Port scan requested but no scan type provided, skipping' + pcolor.color.CLEAR)
