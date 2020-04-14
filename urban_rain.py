@@ -1,5 +1,6 @@
-# Everyone contributed to this file
 #!/usr/bin/env python
+
+# Everyone contributed to this file
 
 import argparse
 import ipaddress
