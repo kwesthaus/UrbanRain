@@ -1,6 +1,7 @@
 # Kyle Westhaus
 from color import pcolor
 import socket
+import time
 
 HTTP_MSG = b'GET / HTTP/1.0\r\n\r\n'
 
